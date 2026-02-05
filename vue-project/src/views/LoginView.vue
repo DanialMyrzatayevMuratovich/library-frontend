@@ -24,6 +24,14 @@
       <p class="register-link">
         Don't have an account? <router-link to="/register">Sign Up</router-link>
       </p>
+
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <button class="guest-btn" @click="handleGuestLogin">
+        Continue as Guest
+      </button>
     </div>
   </div>
 </template>
@@ -38,6 +46,11 @@ const router = useRouter()
 
 const email = ref('')
 const password = ref('')
+
+const handleGuestLogin = () => {
+  authStore.loginAsGuest()
+  router.push('/books')
+}
 
 const handleLogin = async () => {
   const success = await authStore.login({
@@ -93,5 +106,42 @@ button[type="submit"] {
   text-align: center;
   margin-top: 20px;
   color: var(--color-text-secondary);
+}
+
+.divider {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+  color: var(--color-text-secondary);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.guest-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.guest-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 </style>

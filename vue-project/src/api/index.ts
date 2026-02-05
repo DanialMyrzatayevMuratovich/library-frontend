@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { LoginCredentials, RegisterData, AuthResponse, User, Book, Author } from '@/types';
+import type { LoginCredentials, RegisterData, AuthResponse, User, Book, Author, Review } from '@/types';
 
 const API_BASE_URL = '/api';
 
@@ -94,6 +94,10 @@ export const bookAPI = {
     });
     return response.data;
   },
+
+  delete: async (bookId: string): Promise<void> => {
+    await api.delete(`/book/${bookId}`);
+  },
 };
 
 export const authorAPI = {
@@ -105,6 +109,39 @@ export const authorAPI = {
   register: async (data: { firstName: string; lastName: string }): Promise<Author> => {
     const response = await api.post('/author', data);
     return response.data;
+  },
+};
+
+export const reviewAPI = {
+  getByBook: async (bookId: string): Promise<Review[]> => {
+    const response = await api.get(`/review/book/${bookId}`);
+    return response.data;
+  },
+
+  create: async (data: { bookId: string; rating: number; text: string }): Promise<Review> => {
+    const response = await api.post('/review', data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/review/${id}`);
+  },
+};
+
+export const favoritesAPI = {
+  getAll: async (): Promise<string[]> => {
+    const response = await api.get('/user/favorites');
+    return response.data.favorites;
+  },
+
+  add: async (bookId: string): Promise<string[]> => {
+    const response = await api.post(`/user/favorites/${bookId}`);
+    return response.data.favorites;
+  },
+
+  remove: async (bookId: string): Promise<string[]> => {
+    const response = await api.delete(`/user/favorites/${bookId}`);
+    return response.data.favorites;
   },
 };
 

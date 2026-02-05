@@ -6,6 +6,8 @@ import BooksView from '@/views/BooksView.vue'
 import MyBooksView from '@/views/MyBooksView.vue'
 import AdminView from '@/views/AdminView.vue'
 import BookDetailView from '@/views/BookDetailView.vue'
+import FavoritesView from '@/views/FavoritesView.vue'
+import ProfileView from '@/views/ProfileView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
 const router = createRouter({
@@ -42,6 +44,18 @@ const router = createRouter({
       path: '/book/:id',
       name: 'bookDetail',
       component: BookDetailView,
+    },
+    {
+      path: '/favorites',
+      name: 'favorites',
+      component: FavoritesView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: ProfileView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/admin',

@@ -1,11 +1,21 @@
 <template>
   <div class="book-card card">
+    <button
+      v-if="authStore.isAuthenticated"
+      class="favorite-btn"
+      :class="{ 'is-favorited': favoritesStore.isFavorite(book._id) }"
+      @click.stop="favoritesStore.toggleFavorite(book._id)"
+      :title="favoritesStore.isFavorite(book._id) ? 'Remove from favorites' : 'Add to favorites'"
+    >
+      {{ favoritesStore.isFavorite(book._id) ? '\u2665' : '\u2661' }}
+    </button>
     <div class="book-icon">📖</div>
     <router-link :to="`/book/${book._id}`" class="book-title">
       <h3>{{ book.title }}</h3>
     </router-link>
     <p class="author" v-if="author">{{ author.firstName }} {{ author.lastName }}</p>
     <p class="year">{{ book.yearPublished }}</p>
+    <p class="price-tag">Free</p>
 
     <div class="actions" v-if="authStore.isAuthenticated">
       <div v-if="buySuccess" class="success">Purchased!</div>
@@ -26,6 +36,7 @@
 import { ref, onMounted } from 'vue'
 import { useBooksStore } from '@/stores/books'
 import { useAuthStore } from '@/stores/auth'
+import { useFavoritesStore } from '@/stores/favorites'
 import type { Book, Author } from '@/types'
 
 const props = defineProps<{
@@ -35,6 +46,7 @@ const props = defineProps<{
 
 const booksStore = useBooksStore()
 const authStore = useAuthStore()
+const favoritesStore = useFavoritesStore()
 const author = ref<Author | null>(null)
 const isLoading = ref(false)
 const buySuccess = ref(false)
@@ -62,6 +74,31 @@ const handleDownload = async () => {
 .book-card {
   text-align: center;
   transition: all 0.3s;
+  position: relative;
+}
+
+.favorite-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: var(--color-text-secondary);
+  padding: 4px;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.2);
+  background: transparent;
+  box-shadow: none;
+}
+
+.favorite-btn.is-favorited {
+  color: #e53e3e;
 }
 
 .book-icon {
@@ -93,6 +130,17 @@ h3 {
   color: var(--color-text-secondary);
   font-size: 14px;
   margin-bottom: 20px;
+}
+
+.price-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  background-color: var(--color-success);
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 
 .actions {

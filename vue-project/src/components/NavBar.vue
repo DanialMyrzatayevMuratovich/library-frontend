@@ -2,7 +2,9 @@
   <nav class="navbar">
     <div class="container">
       <div class="nav-content">
-        <div class="logo">📚 Library</div>
+        <router-link to="/books" class="logo">
+          <img src="/foto.png" alt="Library" class="logo-img" />
+        </router-link>
         
         <div class="nav-links">
           <router-link to="/books">All Books</router-link>
@@ -11,6 +13,10 @@
             <router-link to="/my-books">
               My Books
               <span v-if="booksCount > 0" class="badge">{{ booksCount }}</span>
+            </router-link>
+            <router-link to="/favorites">
+              Favorites
+              <span v-if="favoritesCount > 0" class="badge favorites-badge">{{ favoritesCount }}</span>
             </router-link>
             <router-link v-if="authStore.isAdmin" to="/admin">Admin</router-link>
 
@@ -27,8 +33,16 @@
                 <div class="dropdown-stats">
                   <span>{{ authStore.user?.ownedBooks?.length ?? 0 }} books owned</span>
                 </div>
+                <router-link to="/profile" class="dropdown-link">Profile</router-link>
                 <button @click="handleLogout" class="logout-btn">Logout</button>
               </div>
+            </div>
+          </template>
+
+          <template v-else-if="authStore.isGuest">
+            <div class="user-section">
+              <span class="guest-label">Guest</span>
+              <router-link to="/login" class="sign-in-link">Sign In</router-link>
             </div>
           </template>
 
@@ -36,6 +50,10 @@
             <router-link to="/login">Sign In</router-link>
             <router-link to="/register">Sign Up</router-link>
           </template>
+
+          <button class="theme-toggle" @click="themeStore.toggleTheme()" :title="themeStore.isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+            {{ themeStore.isDark ? '☀️' : '🌙' }}
+          </button>
         </div>
       </div>
     </div>
@@ -45,15 +63,27 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useFavoritesStore } from '@/stores/favorites'
+import { useThemeStore } from '@/stores/theme'
 import { useRouter, useRoute } from 'vue-router'
 
 const authStore = useAuthStore()
+const favoritesStore = useFavoritesStore()
+const themeStore = useThemeStore()
 const router = useRouter()
 const route = useRoute()
 const showDropdown = ref(false)
 const userSectionRef = ref<HTMLElement | null>(null)
 
 const booksCount = computed(() => authStore.user?.ownedBooks?.length ?? 0)
+const favoritesCount = computed(() => favoritesStore.favoritesCount)
+
+// Load favorites when user data is available
+watch(() => authStore.user, (user) => {
+  if (user) {
+    favoritesStore.loadFavorites()
+  }
+}, { immediate: true })
 
 const onClickOutside = (e: MouseEvent) => {
   if (userSectionRef.value && !userSectionRef.value.contains(e.target as Node)) {
@@ -75,45 +105,75 @@ const handleLogout = () => {
 
 <style scoped>
 .navbar {
-  background-color: var(--color-bg-secondary);
-  border-bottom: 2px solid var(--color-border);
-  padding: 15px 0;
+  background-color: var(--color-navy);
+  padding: 0;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .nav-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 60px;
 }
 
 .logo {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
   font-weight: bold;
-  color: var(--color-accent);
+  color: var(--color-gold) !important;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  opacity: 1 !important;
+}
+
+.logo:hover {
+  color: var(--color-gold-light) !important;
+}
+
+.logo-img {
+  height: 65px;
+  width: auto;
+  border-radius: 12px;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 8px;
 }
 
 .nav-links a {
   font-weight: 500;
-  transition: color 0.3s;
+  font-size: 14px;
+  color: var(--color-text-on-dark);
+  opacity: 0.8;
+  transition: opacity 0.2s, color 0.2s;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.nav-links a:hover {
+  opacity: 1;
+  color: var(--color-gold-light);
 }
 
 .nav-links a.router-link-active {
-  color: var(--color-accent);
+  color: var(--color-gold);
+  opacity: 1;
+  background-color: rgba(200, 169, 81, 0.12);
 }
 
 .badge {
   display: inline-block;
-  background-color: var(--color-accent);
-  color: var(--color-bg-primary);
+  background-color: var(--color-gold);
+  color: var(--color-navy-dark);
   font-size: 11px;
   font-weight: 700;
   padding: 1px 6px;
@@ -124,20 +184,28 @@ const handleLogout = () => {
 
 .user-section {
   position: relative;
-  padding-left: 20px;
-  border-left: 2px solid var(--color-border);
+  padding-left: 16px;
+  margin-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .user-toggle {
-  padding: 8px 14px;
+  padding: 7px 14px;
   font-size: 14px;
-  background-color: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-primary);
+  background-color: rgba(200, 169, 81, 0.1);
+  border: 1px solid rgba(200, 169, 81, 0.3);
+  color: var(--color-gold-light);
+  border-radius: 6px;
 }
 
 .user-toggle:hover {
-  border-color: var(--color-accent);
+  background-color: rgba(200, 169, 81, 0.2);
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+  box-shadow: none;
 }
 
 .user-dropdown {
@@ -150,6 +218,7 @@ const handleLogout = () => {
   padding: 15px;
   min-width: 220px;
   z-index: 200;
+  box-shadow: var(--shadow-lg);
 }
 
 .dropdown-header {
@@ -190,14 +259,70 @@ const handleLogout = () => {
   font-size: 14px;
 }
 
+.favorites-badge {
+  background-color: #e53e3e;
+  color: #ffffff;
+}
+
+.guest-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.sign-in-link {
+  font-size: 14px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-gold);
+  border-radius: 6px;
+  color: var(--color-gold) !important;
+  opacity: 1 !important;
+}
+
+.sign-in-link:hover {
+  background-color: rgba(200, 169, 81, 0.15);
+}
+
+.theme-toggle {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  padding: 6px;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  margin-left: 4px;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  transform: none;
+}
+
+.dropdown-link {
+  display: block;
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--color-text-primary) !important;
+  opacity: 1 !important;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dropdown-link:hover {
+  color: var(--color-accent) !important;
+}
+
 @media (max-width: 768px) {
   .nav-content {
     flex-direction: column;
     gap: 12px;
+    padding: 12px 0;
   }
 
   .nav-links {
-    gap: 15px;
+    gap: 6px;
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -205,6 +330,7 @@ const handleLogout = () => {
   .user-section {
     padding-left: 0;
     border-left: none;
+    margin-left: 0;
   }
 
   .logo {

@@ -42,3 +42,18 @@ export interface AuthResponse {
   accessToken: string;
   user?: User;
 }
+
+export interface Review {
+  id: string;
+  bookId: string;
+  userId: string;
+  userName: string;
+  rating: number;
+  text: string;
+  createdAt: string;
+}
+
+export interface FavoriteEntry {
+  bookId: string;
+  addedAt: string;
+}
